@@ -38,7 +38,6 @@
     border-radius: 4px;
     cursor: pointer;
     margin: 5px;
-    color: red;
   }
   
   button:hover {
@@ -75,7 +74,6 @@
   }
   
   th {
-    background-color: #007bff;
     color: white;
   }
 .container_add{
