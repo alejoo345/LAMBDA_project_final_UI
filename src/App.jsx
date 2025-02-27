@@ -1,17 +1,18 @@
 import { useState } from 'react'
 import './App.css'
-import Libros from './biblioteca/Libros/components/Libro'
-import LoginForm from './biblioteca/resources/components/login'
-import Layout from './biblioteca/resources/components/navbar'
-
+import LoginForm from './biblioteca/Login/components/Login'
+import {Routes, Route} from 'react-router-dom'
+// import ProtectedRoute from './biblioteca/Login/hooks/ProtectedRoute'
+import Layout from './biblioteca/Core/components/Navbar'
 function App() {
   const [count, setCount] = useState(0)
 
   return (
     <>
-    <div className="app-container">
-      <Layout/>
-    </div>
+      <Routes>
+        <Route path="/" element={< LoginForm/> } />
+          <Route path="/Dashboard" element={<Layout/>}/>
+      </Routes>
     </>
   )
 } 

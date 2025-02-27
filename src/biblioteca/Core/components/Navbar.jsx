@@ -1,10 +1,18 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom"; // 🚀 Importamos useNavigate para redirigir después del logout
 import Dashboard from "./Sidebarr";
 import Libros from "../../Libros/components/Libro";
-
+import useAuth from "../../Login/hooks/useAuth";
 export default function Layout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const { logout } = useAuth(); 
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout(); 
+    navigate("/"); 
+  };
 
   return (
     <div className="flex">
@@ -17,7 +25,7 @@ export default function Layout() {
         <Dashboard />
       </aside>
 
-      {/* Navbar*/}
+      {/* Navbar */}
       <nav className="fixed top-0 left-0 w-full bg-white border-b border-gray-200 dark:bg-gray-800 dark:border-gray-700 h-16 flex items-center px-4 justify-between z-40 transition-all duration-300">
         {/* Botón para abrir/cerrar Sidebar */}
         <div className="flex items-center">
@@ -68,37 +76,14 @@ export default function Layout() {
                 </p>
               </div>
               <ul className="py-1">
+       
                 <li>
-                  <a
-                    href="#"
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white"
+                  <button
+                    onClick={handleLogout}
+                    className="block w-full text-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white"
                   >
-                    Dashboard
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#"
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white"
-                  >
-                    Settings
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#"
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white"
-                  >
-                    Earnings
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#"
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white"
-                  >
-                    Sign out
-                  </a>
+                    Log out
+                  </button>
                 </li>
               </ul>
             </div>
@@ -113,9 +98,9 @@ export default function Layout() {
         }`}
       >
       </main>
+      
       {/* contenido de libros */}
-      <Libros/>
-
+      <Libros />
     </div>
   );
 }
