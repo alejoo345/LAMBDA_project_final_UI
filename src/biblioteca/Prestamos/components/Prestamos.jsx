@@ -1,53 +1,51 @@
 import { useState } from "react";
-import useAutores from "../hooks/useAutores";
-import useDeleteAutor from "../hooks/useDeleteAutor";
+import useLoans from "../hooks/usePrestamos";
 import GenericTable from "../../Core/components/GenericTable";
 import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
-import AutorForm from "../utils/AutorForm";
-import AutorUpdateModal from "../utils/AutorUpdateModal";
+import LoanForm from "../utils/PrestamosForm";
+import LoanUpdateModal from "../utils/PrestamosUpdateForm";
 
-export default function Autores() {
-  const { autores, loading, error, currentPage, totalPages, setCurrentPage, order, setOrder, reloadAutores } = useAutores();
-  const { deleteAutor } = useDeleteAutor(reloadAutores);
-  
-  // Estados para crear y editar autores
+export default function Loans() {
+  const { loans, loading, error, currentPage, totalPages, setCurrentPage, order, setOrder, reloadLoans } = useLoans();
+
+  // Estados para crear y editar préstamos
   const [modalCreateOpen, setModalCreateOpen] = useState(false);
   const [modalEditOpen, setModalEditOpen] = useState(false);
-  const [autorEdit, setAutorEdit] = useState(null);
+  const [loanEdit, setLoanEdit] = useState(null);
 
   return (
     <div className="w-full p-6">
-      <h1 className="text-2xl font-bold text-gray-800 mb-4">Gestión de Autores</h1>
+      <h1 className="text-2xl font-bold text-gray-800 mb-4">Gestión de Préstamos</h1>
 
       <GenericTable
-        data={autores.map((autor) => ({
-          id: autor.id,
-          nombre: autor.name,
-          fecha_nacimiento: autor.birth_date || "No disponible",
+        data={loans.map((loan) => ({
+          id: loan.id,
+          user: loan.user ? loan.user.email || "Usuario desconocido" : "Usuario no disponible",
+          book: loan.book ? loan.book.title : "Libro no disponible",
+          loan_date: loan.loan_date,
+          return_date: loan.return_date || "No registrada",
+          returned: loan.returned ? "Sí" : "No",
           acciones: (
             <div className="flex gap-3">
               <button
                 className="text-blue-600 hover:text-blue-800 transition flex items-center gap-1"
                 onClick={() => {
-                  setAutorEdit(autor);
+                  setLoanEdit(loan);
                   setModalEditOpen(true);
                 }}
               >
                 <FaEdit /> Editar
-              </button>
-              <button
-                className="text-red-600 hover:text-red-800 transition flex items-center gap-1"
-                onClick={() => deleteAutor(autor.id)}
-              >
-                <FaTrash /> Eliminar
               </button>
             </div>
           ),
         }))}
         columns={[
           { key: "id", label: "ID" },
-          { key: "nombre", label: "Nombre" },
-          { key: "fecha_nacimiento", label: "Fecha de Nacimiento" },
+          { key: "user", label: "Usuario" },
+          { key: "book", label: "Libro" },
+          { key: "loan_date", label: "Fecha de Préstamo" },
+          { key: "return_date", label: "Fecha de Devolución" },
+          { key: "returned", label: "Devuelto" },
           { key: "acciones", label: "Acciones" },
         ]}
         error={error}
@@ -62,18 +60,18 @@ export default function Autores() {
               className="flex items-center font-black gap-2 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-700 transition"
               onClick={() => setModalCreateOpen(true)}
             >
-              <FaPlus className="text-white" /> Agregar Autor
+              <FaPlus className="text-white" /> Agregar Préstamo
             </button>
           </div>
         }
       />
 
-      {/* Modal para CREAR un autor */}
+      {/* Modal para CREAR un préstamo */}
       {modalCreateOpen && (
-        <div className="fixed inset-0 flex items-center justify-center ">
+        <div className="fixed inset-0 flex items-center justify-center">
           <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-            <h2 className="text-lg text-black font-bold mb-4">Crear Autor</h2>
-            <AutorForm isOpen={modalCreateOpen} reloadAutores={reloadAutores} setIsOpen={setModalCreateOpen} />
+            <h2 className="text-lg text-black font-bold mb-4">Crear Préstamo</h2>
+            <LoanForm isOpen={modalCreateOpen} reloadLoans={reloadLoans} setIsOpen={setModalCreateOpen} />
             <button
               onClick={() => setModalCreateOpen(false)}
               className="mt-4 w-full bg-red-500 text-white py-2 rounded-lg shadow-md hover:bg-red-700 transition"
@@ -84,13 +82,13 @@ export default function Autores() {
         </div>
       )}
 
-      {/* Modal para EDITAR un autor */}
+      {/* Modal para EDITAR un préstamo */}
       {modalEditOpen && (
-        <AutorUpdateModal
+        <LoanUpdateModal
           isOpen={modalEditOpen}
           setIsOpen={setModalEditOpen}
-          reloadAutores={reloadAutores}
-          autorEdit={autorEdit}
+          reloadLoans={reloadLoans}
+          loanEdit={loanEdit}
         />
       )}
     </div>
