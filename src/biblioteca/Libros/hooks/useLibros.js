@@ -12,30 +12,30 @@ const useLibros = () => {
   const fetchLibros = useCallback(async (page = 1, pageSize = 4, ordering = "id") => {
     setLoading(true);
     setError(null);
-
     try {
       const response = await api.get(`/list_create/?page=${page}&ordering=${ordering}`);
-      
-      const librosData = response.data.results || response.data;
-      const pages = Math.ceil(response.data.count / pageSize) || 1; 
-
-      if (Array.isArray(librosData)) {
-        setLibros(librosData);
-        setTotalPages(pages);
-        setCurrentPage(page);
-      } else {
-        setError("Los datos recibidos no tienen el formato esperado.");
-      }
+      const librosData = Array.isArray(response.data.results) ? response.data.results : [];
+      setLibros(librosData);
+      setTotalPages(response.data.count ? Math.ceil(response.data.count / pageSize) : 1);
+      setCurrentPage(page);
     } catch (err) {
-      setError(err.response ? `Error ${err.response.status}: ${err.response.data.detail || "No se pudieron obtener los libros"}` : "Error de conexión con el servidor");
+      setError(err.response
+        ? `Error ${err.response.status}: ${err.response.data.detail || "No se pudieron obtener los libros"}`
+        : "Error de conexión con el servidor"
+      );
     } finally {
       setLoading(false);
     }
   }, []);
-
+  
+  const reloadLibros = useCallback(() => {
+    fetchLibros(currentPage, 4, order);
+  }, [fetchLibros, currentPage, order]);
+  
   useEffect(() => {
     fetchLibros(currentPage, 4, order);
   }, [fetchLibros, currentPage, order]);
+  
 
   return {
     libros,
@@ -45,8 +45,8 @@ const useLibros = () => {
     totalPages,
     setCurrentPage,
     order,
-    setOrder, // Permitir cambiar el orden desde el componente
-    reloadLibros: () => fetchLibros(currentPage, 4, order),
+    setOrder,
+    reloadLibros, // ✅ Asegurarse de exportar la función correctamente
   };
 };
 

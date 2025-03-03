@@ -1,7 +1,8 @@
 import { createPortal } from "react-dom";
-import useLibroForm from "../hooks/useCreateForm";
+import Select from "react-select"; // Importamos React Select
+import useLibroForm from "../../Libros/hooks/useCreateForm";
 
-export default function ModalForm({ isOpen, setIsOpen, reloadLibros }) {
+export default function ModalLibro({ isOpen, setIsOpen, reloadLibros, libroEdit }) {
   const {
     formData,
     authors,
@@ -11,16 +12,18 @@ export default function ModalForm({ isOpen, setIsOpen, reloadLibros }) {
     handleChange,
     handleSubmit,
     setFormData,
-  } = useLibroForm({ isOpen, reloadLibros, setIsOpen });
+  } = useLibroForm({ isOpen, reloadLibros, setIsOpen, libroEdit });
 
   if (!isOpen) return null;
 
   return createPortal(
-    <div className="fixed inset-0 flex items-center justify-center">
-      <div className="bg-white p-6 rounded-lg shadow-lg w-96 relative">
-        <h2 className="text-xl font-bold mb-4 text-center text-black">Agregar Libro</h2>
+    <div className="fixed inset-0 flex items-center justify-center  bg-opacity-50 p-4">
+      <div className="bg-white p-6 rounded-2xl shadow-xl w-full max-w-lg relative">
+        <h2 className="text-2xl font-bold mb-6 text-center text-gray-900">
+          {libroEdit ? "Editar Libro" : "Agregar Libro"}
+        </h2>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
           {/* Título */}
           <div>
             <label className="block text-sm font-medium text-gray-700">Título</label>
@@ -30,7 +33,7 @@ export default function ModalForm({ isOpen, setIsOpen, reloadLibros }) {
               placeholder="Ingresa un título"
               value={formData.title}
               onChange={handleChange}
-              className="w-full p-2 border rounded border-gray-700 text-black"
+              className="w-full p-2 border rounded-lg border-gray-300 text-gray-900 focus:ring-2 focus:ring-blue-500"
               required
             />
           </div>
@@ -42,7 +45,7 @@ export default function ModalForm({ isOpen, setIsOpen, reloadLibros }) {
               name="author"
               value={formData.author}
               onChange={handleChange}
-              className="w-full p-2 border rounded border-gray-700 text-black"
+              className="w-full p-2 border rounded-lg border-gray-300 text-gray-900 focus:ring-2 focus:ring-blue-500"
               required
             >
               <option value="">
@@ -56,27 +59,26 @@ export default function ModalForm({ isOpen, setIsOpen, reloadLibros }) {
             </select>
           </div>
 
-          {/* Categorías */}
+          {/* Categorías - Usando React Select */}
           <div>
             <label className="block text-sm font-medium text-gray-700">Categorías</label>
-            <select
-              name="categories"
-              multiple
-              value={formData.categories}
-              onChange={handleChange}
-              className="w-full p-2 border rounded border-gray-700 text-black"
-              required
-            >
-              {loadingCategories ? (
-                <option value="">Cargando categorías...</option>
-              ) : (
-                categories.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
-                  </option>
-                ))
-              )}
-            </select>
+            <Select
+              options={categories.map((cat) => ({ value: cat.id, label: cat.name }))}
+              isMulti
+              value={categories.filter((cat) => formData.categories.includes(cat.id)).map((cat) => ({
+                value: cat.id,
+                label: cat.name,
+              }))}
+              onChange={(selectedOptions) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  categories: selectedOptions.map((opt) => opt.value),
+                }))
+              }
+              placeholder="Selecciona categorías..."
+              className="text-gray-900"
+              isLoading={loadingCategories}
+            />
           </div>
 
           {/* Fecha de Publicación */}
@@ -87,13 +89,13 @@ export default function ModalForm({ isOpen, setIsOpen, reloadLibros }) {
               name="publication_date"
               value={formData.publication_date}
               onChange={handleChange}
-              className="w-full p-2 border rounded border-gray-700 text-black"
+              className="w-full p-2 border rounded-lg border-gray-300 text-gray-900 focus:ring-2 focus:ring-blue-500"
               required
             />
           </div>
 
           {/* Botones */}
-          <div className="flex justify-end space-x-2">
+          <div className="flex justify-end space-x-3">
             <button
               type="button"
               onClick={() => {
@@ -105,15 +107,15 @@ export default function ModalForm({ isOpen, setIsOpen, reloadLibros }) {
                 });
                 setIsOpen(false);
               }}
-              className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-700 transition"
+              className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-700 transition"
+              className="bg-blue-500 text-white px-4 py-2 rounded"
             >
-              Guardar
+              {"Guardar"}
             </button>
           </div>
         </form>

@@ -1,64 +1,108 @@
 import { useState, useEffect } from "react";
+import Swal from "sweetalert2";
 import api from "../../../services/api";
-export default function useLibroForm({ isOpen, reloadLibros, setIsOpen }) {
-  const initialFormState = {
+
+const useLibroForm = ({ isOpen, reloadLibros, setIsOpen, libroEdit }) => {
+  const [formData, setFormData] = useState({
     title: "",
     author: "",
     categories: [],
     publication_date: "",
-  };
+  });
 
-  const [formData, setFormData] = useState(initialFormState);
   const [authors, setAuthors] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loadingAuthors, setLoadingAuthors] = useState(true);
   const [loadingCategories, setLoadingCategories] = useState(true);
 
   useEffect(() => {
-    if (isOpen) {
-      setLoadingAuthors(true);
-      setLoadingCategories(true);
+    if (!isOpen) return;
 
-      api.get("/authors/")
-        .then((res) => setAuthors(Array.isArray(res.data) ? res.data : []))
-        .catch((err) => console.error("❌ Error cargando autores:", err))
-        .finally(() => setLoadingAuthors(false));
+    const fetchData = async () => {
+      try {
+        const [authorsRes, categoriesRes] = await Promise.all([
+          api.get("/authors/"),
+          api.get("/categories/"),
+        ]);
 
-      api.get("/categories/")
-        .then((res) => setCategories(res.data.results || []))
-        .catch((err) => console.error("❌ Error cargando categorías:", err))
-        .finally(() => setLoadingCategories(false));
-    }
+        setAuthors(Array.isArray(authorsRes.data.results) ? authorsRes.data.results : []);
+        setCategories(Array.isArray(categoriesRes.data.results) ? categoriesRes.data.results : []);
+      } catch (error) {
+        console.error("Error cargando autores y categorías:", error);
+      } finally {
+        setLoadingAuthors(false);
+        setLoadingCategories(false);
+      }
+    };
+
+    fetchData();
   }, [isOpen]);
 
-  // Manejo de cambios en los inputs
-  const handleChange = (e) => {
-    const { name, value, selectedOptions } = e.target;
-
-    if (name === "categories") {
-      const selectedValues = Array.from(selectedOptions, (option) => parseInt(option.value));
-      setFormData((prev) => ({ ...prev, categories: selectedValues }));
+  useEffect(() => {
+    if (libroEdit) {
+      setFormData({
+        title: libroEdit.title || "",
+        author: libroEdit.author || "",
+        categories: libroEdit.categories || [],
+        publication_date: libroEdit.publication_date || "",
+      });
     } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
+      setFormData({
+        title: "",
+        author: "",
+        categories: [],
+        publication_date: "",
+      });
     }
+  }, [libroEdit]);
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // Enviar formulario
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     try {
-      await api.post("/list_create/", {
-        ...formData,
-        categories: formData.categories.map((id) => parseInt(id)),
+      if (libroEdit) {
+        // 🔹 Confirmación antes de actualizar
+        const result = await Swal.fire({
+          title: "¿Actualizar libro?",
+          text: "Se modificarán los datos del libro.",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonText: "Sí, actualizar",
+          cancelButtonText: "Cancelar",
+        });
+
+        if (!result.isConfirmed) return;
+
+        await api.put(`/list_create/${libroEdit.id}/`, formData);
+      } else {
+        await api.post("/list_create/", formData);
+      }
+
+      reloadLibros();
+      setIsOpen(false);
+
+      // ✅ Éxito
+      Swal.fire({
+        title: "¡Éxito!",
+        text: libroEdit ? "Libro actualizado correctamente" : "Libro agregado correctamente",
+        icon: "success",
+        timer: 2000,
+        showConfirmButton: false,
       });
 
-      alert("✅ Libro agregado correctamente.");
-      reloadLibros();
-      setFormData(initialFormState);
-      setIsOpen(false);
     } catch (error) {
-      console.error("❌ Error al agregar el libro:", error);
-      alert("⚠️ Error al agregar el libro. Revisa los datos.");
+      console.error("Error guardando el libro:", error);
+
+      // ❌ Error
+      Swal.fire({
+        title: "Error",
+        text: "Hubo un problema al guardar el libro.",
+        icon: "error",
+      });
     }
   };
 
@@ -72,4 +116,6 @@ export default function useLibroForm({ isOpen, reloadLibros, setIsOpen }) {
     handleSubmit,
     setFormData,
   };
-}
+};
+
+export default useLibroForm;
